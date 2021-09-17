@@ -1,0 +1,66 @@
+---
+- hosts: default
+  become: true
+  gather_facts: yes
+  
+  tasks:
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+ 
+    - name: Add Docker GPG apt Key
+      apt_key:
+       url: https://download.docker.com/linux/ubuntu/gpg
+       state: present
+    - name: Add Docker Repository
+      apt_repository:
+       repo: deb https://download.docker.com/linux/ubuntu bionic stable
+       state: present
+ 
+    - name: Update apt and install docker-ce
+      apt: 
+        update_cache: yes 
+        name: docker-ce=5:20.10.5~3-0~ubuntu-bionic,docker-ce-cli=5:20.10.5~3-0~ubuntu-bionic,containerd.io
+        state: present
+
+    - name: Add CIDR docker range
+      copy:
+        dest: "/etc/docker/daemon.json"
+        content: |
+          {
+            "bip": "100.127.255.1/24",
+            "fixed-cidr": "100.127.255.0/24",
+            "default-address-pools": [
+            {
+              "base": "100.64.0.0/10",
+              "size": 25
+            }
+          ],
+          "storage-driver": "overlay2"
+          }
+    - name: Set ip forwarding on in /proc and verify token value with the sysctl command
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+    - name: Add user vagrant to docker group
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+    
+    - name: Install docker-compose
+      get_url: 
+        url : "https://github.com/docker/compose/releases/download/1.28.5/docker-compose-Linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        group: docker
+        mode: 'u+x,g+x'
+
+    #- name: "Remount a mounted volume and append exec to the existing options. 'mount' module doesn't work"
+    #  command: mount /tmp -o remount,exec
+    #  tags: azure
+         
+    - name: Start Docker service
+      service:
+        name: docker
+        state: restarted
+        enabled: yes

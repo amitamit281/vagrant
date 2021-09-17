@@ -1,0 +1,26 @@
+## Vagrant Install Instructions
+
+# Install Vagrant 
+
+``` brew install vagrant ```
+
+# Download & install virtual box https://www.virtualbox.org/wiki/Downloads
+
+#  Dwonlaod ubuntu images ``` vagrant init ubuntu/bionic64 ```
+
+# Install ansible on host host machine
+ *  Install pip  ``` sudo python -m ensurepip --upgrade ```
+ *  Install Ansible ``` sudo brew install ansible ```
+
+# Run Ansible playbook to install docker & docker-compose
+   There are many ways to install docker, using snap vagrant file...etc. but snap canonical might have older version. 
+``` ansible-playbook --private-key=~/.vagrant.d/insecure_private_key -u vagrant -i hosts playbook_ubuntu1804_install_docker.yaml ```
+
+# add docker in path
+* Set /usr/bin path ~/.profile file path
+
+# Commands
+* ``` vagrant up ``` start the vm
+* ``` vagrant halt ``` shutdown the vm
+* ``` vagrant ssh ``` connect to  vm
+
